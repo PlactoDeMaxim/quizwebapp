@@ -86,7 +86,7 @@ export const questionBank = {
         id: "w1q9",
         question: "What issues can be observed in the following text? On a much-needed #workcation in beautiful Goa. Workin &amp; chillin by d waves!",
         options: ["Idioms", "Non-standard English", "Tricky Entity Names", "Neologisms"],
-        correctAnswer: 1,
+        correctAnswer: [1,3],
         explanation: "Contains non-standard English (d, &amp;, workin) and neologisms (#workcation). Both b and d are correct.",
         cheat: "📱 Social media = Non-standard + Neologisms (new words like 'workcation'!)"
       },
