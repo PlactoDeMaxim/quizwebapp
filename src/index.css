@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sage-50: #f4f7f4;
+  --sage-100: #e3e8e3;
+  --sage-200: #c8d1c8;
+  --sage-300: #a3b0a3;
+  --sage-400: #7a8a7a;
+  --sage-500: #5f6f5f;
+  --sage-600: #4a574a;
+  --sage-700: #3d473d;
+  --sage-800: #333c33;
+  --sage-900: #2b322b;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
