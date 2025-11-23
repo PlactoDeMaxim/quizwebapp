@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import ParrotLogo from '@/components/ParrotLogo';
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,8 +74,13 @@ export default function Search() {
               </Button>
             </Link>
             <div className="flex items-center gap-3">
-              <SearchIcon className="w-5 h-5 text-sage-600" />
-              <h1 className="text-xl font-semibold text-slate-900">Search Questions</h1>
+              <ParrotLogo className="w-6 h-6" />
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-slate-900">ParrotClaw</span>
+                <span className="text-slate-400">·</span>
+                <SearchIcon className="w-5 h-5 text-sage-600" />
+                <h1 className="text-xl font-semibold text-slate-900">Search Questions</h1>
+              </div>
             </div>
             <div className="w-20" />
           </div>

@@ -5,6 +5,7 @@ import { BookOpen, Brain, GraduationCap, Sparkles, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import ParrotLogo from '@/components/ParrotLogo';
 
 export default function Home() {
   return (
@@ -20,15 +21,20 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center">
 
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sage-100/50 rounded-full mb-6 border border-sage-200/50">
-              <Sparkles className="w-4 h-4 text-sage-700" />
-              <span className="text-sm font-medium text-sage-800">Chadhuvukondi Prends</span>
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <ParrotLogo className="w-12 h-12" />
+              <h1 className="text-5xl font-bold tracking-tight text-slate-900">
+                ParrotClaw
+              </h1>
             </div>
             
-            <h1 className="text-6xl font-light tracking-tight text-slate-900 mb-4">Introduction to Large Language Models
-            </h1>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-sage-100/50 rounded-full mb-6 border border-sage-200/50">
+              <Sparkles className="w-4 h-4 text-sage-700" />
+              <span className="text-sm font-medium text-sage-800">Introduction to Large Language Models</span>
+            </div>
             
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto mt-6 leading-relaxed">Comprehensive Learning
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto mt-6 leading-relaxed">
+              Chadhuvukondi Prends
             </p>
           </motion.div>
 

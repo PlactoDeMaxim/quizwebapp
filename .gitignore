@@ -37,6 +37,6 @@ lerna-debug.log*
 # Vercel
 .vercel
 
-# PDF files (optional - remove if you want to track them)
-# *.pdf
+# PDF files
+*.pdf
 
