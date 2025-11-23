@@ -113,7 +113,7 @@ export const questionBank = {
       },
       {
         id: "w2q2",
-        question: "What is the goal of a probabilistic language model?",
+        question: "What is the goal of a probabilistic language model?  (Not Important)",
         options: ["Translate sentences", "Predict the next word in a sequence", "Classify documents", "Summarize text"],
         correctAnswer: 1,
         explanation: "Language models predict the next word.",
@@ -121,7 +121,7 @@ export const questionBank = {
       },
       {
         id: "w2q3",
-        question: "Which expresses the chain rule for a 4-word sentence?",
+        question: "Which equation expresses the chain rule for a 4-word sentence?",
         options: [
           "P(w1,w2,w3,w4) = P(w1) + P(w2|w1) + P(w3|w2) + P(w4|w3)",
           "P(w1,w2,w3,w4) = P(w1) × P(w2|w1) × P(w3|w1,w2) × P(w4|w1,w2,w3)",
@@ -142,7 +142,7 @@ export const questionBank = {
       },
       {
         id: "w2q5",
-        question: "In trigram model, correct linear interpolation example?",
+        question: "In a trigram language model, which of the following is a correct example of linear interpolation?",
         options: [
           "P(wi|wi-2,wi-1)=λ1P(wi|wi-2,wi-1)",
           "P(wi|wi-2,wi-1)=λ1P(wi|wi-2,wi-1)+λ2P(wi|wi-1)+λ3P(wi)",
@@ -181,8 +181,8 @@ export const questionBank = {
         id: "w2q8",
         question: "Assuming a bi-gram language model, calculate the perplexity of the sentence: <s> birds fly in the blue sky </s> Please do not consider <s> and </s> as words of the sentence.",
         options: ["271/4", "271/5", "91/6", "None of these"],
-        correctAnswer: 3,
-        explanation: "As calculated in the previous question, P(<s> birds fly in the blue sky </s>) = 0. Thus, Perplexity = undefined",
+        correctAnswer: [1, 3],
+        explanation: "As calculated in the previous question, P(<s> birds fly in the blue sky </s>) = 0. Thus, Perplexity = undefined. Both option 2 (271/5) and option 4 (None of these) are correct interpretations.",
         cheat: "❌ UNDEFINED = Can't calculate perplexity when probability is 0!"
       }
     ]
@@ -192,7 +192,7 @@ export const questionBank = {
     questions: [
       {
         id: "w3q1",
-        question: "In backpropagation, which method computes gradients?",
+        question: "In backpropagation, which method is used to computes gradients?",
         options: ["Gradient descent", "Chain rule of derivatives", "Matrix factorization", "Linear regression"],
         correctAnswer: 1,
         explanation: "Backpropagation uses chain rule to calculate gradients layer by layer.",
@@ -200,7 +200,7 @@ export const questionBank = {
       },
       {
         id: "w3q2",
-        question: "Which function is NOT differentiable at zero?",
+        question: "Which of the following functions is not differentiable at zero?",
         options: ["Sigmoid", "Tanh", "ReLU", "Linear"],
         correctAnswer: 2,
         explanation: "ReLU has different left/right derivatives at zero.",
@@ -208,7 +208,7 @@ export const questionBank = {
       },
       {
         id: "w3q3",
-        question: "In regularization, which is true?",
+        question: "In the context of regularization, which of the following statements is true?",
         options: [
           "L2 regularization produces sparse weights",
           "Dropout applied during inference",
@@ -221,7 +221,7 @@ export const questionBank = {
       },
       {
         id: "w3q4",
-        question: "Which activation least suffers from vanishing gradients?",
+        question: "Which activation function is least likely to suffer from vanishing gradients?",
         options: ["Tanh", "Sigmoid", "ReLU"],
         correctAnswer: 2,
         explanation: "ReLU gradient is 1 for positive, allowing effective flow.",
@@ -229,7 +229,7 @@ export const questionBank = {
       },
       {
         id: "w3q5",
-        question: "Derivative of sigmoid function?",
+        question: "Which of the following equations correctly represents the derivative of the sigmoid function?",
         options: ["σ(x)·(1+σ(x))", "σ(x)²", "σ(x)·(1-σ(x))", "1/(1+e^x)"],
         correctAnswer: 2,
         explanation: "Sigmoid derivative is σ(x)(1−σ(x)).",
@@ -237,7 +237,7 @@ export const questionBank = {
       },
       {
         id: "w3q6",
-        question: "Perceptron convergence requires data to be?",
+        question: "What condition must be met for the Perceptron learning algorithm to converge?",
         options: ["Learning rate zero", "Non-linearly separable", "Linearly separable", "Sigmoid activation"],
         correctAnswer: 2,
         explanation: "Perceptron only converges for linearly separable data.",
@@ -245,7 +245,7 @@ export const questionBank = {
       },
       {
         id: "w3q7",
-        question: "Which logic function needs hidden layer?",
+        question: "Which of the following logic functions requires a network with at least one hidden layer to model?",
         options: ["AND", "OR", "NOT", "XOR"],
         correctAnswer: 3,
         explanation: "XOR is the classic non-linearly separable function.",
@@ -253,7 +253,7 @@ export const questionBank = {
       },
       {
         id: "w3q8",
-        question: "Why non-linear activations between MLP layers?",
+        question: "Why is it necessary to include non-linear activation functions between layers in an MLP?",
         options: [
           "Without them, network is just linear",
           "They prevent overfitting",
@@ -265,7 +265,7 @@ export const questionBank = {
       },
       {
         id: "w3q9",
-        question: "Output activation for binary classification?",
+        question: "What is typically the output activation function for an MLP solving a binary classification task?",
         options: ["Tanh", "ReLU", "Sigmoid", "Softmax"],
         correctAnswer: 2,
         explanation: "Sigmoid outputs probability for binary classification.",
@@ -273,7 +273,7 @@ export const questionBank = {
       },
       {
         id: "w3q10",
-        question: "Which regularization encourages weight sparsity?",
+        question: "Which type of regularization encourages sparsity in the weights",
         options: ["L1 regularization", "L2 regularization", "Dropout", "Early stopping"],
         correctAnswer: 0,
         explanation: "L1 regularization encourages sparsity.",
@@ -670,8 +670,8 @@ export const questionBank = {
       },
       {
         id: "w7q7",
-        question: "The einsum function in numpy is used as a generalized operation for performing tensor multiplications. Now, consider two matrices: A = [[2, 8], [4, 3]] and B = [[-9, 9], [0, 11]]. Then, what is the output of the following numpy operation? numpy.einsum('ij,ij->', A, B)",
-        options: ["87", "54", "33", "120"],
+        question: "The einsum function in numpy is used as a generalized operation for performing tensor multiplications. Now, consider two matrices: A = [[2, 8], [4, 3]] and B = [[-9, 9], [0, 11]]. Then, what is the output of the following numpy operation? numpy.einsum('ij,ij->', A, B)---------(Numerical Question)",
+        options: ["87", "0", "0", "0"],
         correctAnswer: 0,
         explanation: "The einsum notation 'ij,ij->' defines element-wise multiplication followed by sum. A⊙B = [[-18, 72], [0, 33]]. Sum = (-18) + 72 + 0 + 33 = 87",
         cheat: "🧮 EINSUM = Element-wise multiply then sum all elements!"
