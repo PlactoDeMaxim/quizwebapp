@@ -108,19 +108,21 @@ export default function QuizMode() {
       const indices = originalOptions.map((_, i) => i);
       const shuffledIndices = shuffleArray(indices);
       
-      // Map old index to new index
+      // Create mapping: original index -> new position
+      // shuffledIndices[i] gives the original index that is now at position i
+      // So we need: for each original index, find its new position
       const indexMap = {};
-      shuffledIndices.forEach((newIdx, oldIdx) => {
-        indexMap[oldIdx] = newIdx;
+      shuffledIndices.forEach((originalIdx, newPosition) => {
+        indexMap[originalIdx] = newPosition;
       });
       
-      // Shuffle options
-      const shuffledOptions = shuffledIndices.map(oldIdx => originalOptions[oldIdx]);
+      // Shuffle options using the shuffled indices
+      const shuffledOptions = shuffledIndices.map(originalIdx => originalOptions[originalIdx]);
       
       // Map correct answer to new positions
       let newCorrectAnswer;
       if (Array.isArray(originalCorrectAnswer)) {
-        newCorrectAnswer = originalCorrectAnswer.map(oldIdx => indexMap[oldIdx]);
+        newCorrectAnswer = originalCorrectAnswer.map(originalIdx => indexMap[originalIdx]);
       } else {
         newCorrectAnswer = indexMap[originalCorrectAnswer];
       }
