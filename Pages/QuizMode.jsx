@@ -293,8 +293,8 @@ export default function QuizMode() {
           </div>
         )}
 
-        {/* Week Selector - Hidden in Grand Test */}
-        {!isGrandTest && (
+        {/* Week Selector - Hidden in Grand Test and Multi-Select Mode */}
+        {!isGrandTest && !isMultiSelectMode && (
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-wrap gap-2 sm:gap-3">
               {weeks.map((week, index) =>
