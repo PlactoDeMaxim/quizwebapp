@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { questionBank } from '../Components/quiz/questionBank';
-import { ChevronLeft, CheckCircle2, XCircle, RotateCcw, Brain, Lightbulb, Search, Shuffle } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, XCircle, RotateCcw, Brain, Lightbulb, Search, Shuffle, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,8 @@ export default function QuizMode() {
   const [checkedQuestions, setCheckedQuestions] = useState(new Set());
   const [isGrandTest, setIsGrandTest] = useState(false);
   const [grandTestQuestions, setGrandTestQuestions] = useState([]);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [multiSelectQuestions, setMultiSelectQuestions] = useState([]);
 
   const weeks = Object.keys(questionBank);
   const currentWeek = questionBank[selectedWeek];
@@ -54,8 +56,8 @@ export default function QuizMode() {
   };
 
   const handleRetake = () => {
-    if (isGrandTest) {
-      // Reset grand test answers
+    if (isGrandTest || isMultiSelectMode) {
+      // Reset grand test or multi-select mode answers
       setSelectedAnswers({});
       setCheckedQuestions(new Set());
     } else {
@@ -78,9 +80,11 @@ export default function QuizMode() {
   const handleWeekChange = (week) => {
     setSelectedWeek(week);
     setIsGrandTest(false);
+    setIsMultiSelectMode(false);
     setSelectedAnswers({});
     setCheckedQuestions(new Set());
     setGrandTestQuestions([]);
+    setMultiSelectQuestions([]);
   };
 
   const handleStartGrandTest = () => {
@@ -150,9 +154,79 @@ export default function QuizMode() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleStartMultiSelectMode = () => {
+    // Collect all multi-select questions from all weeks
+    const allMultiSelectQuestions = [];
+    Object.keys(questionBank).forEach(weekKey => {
+      questionBank[weekKey].questions.forEach(q => {
+        if (Array.isArray(q.correctAnswer)) {
+          allMultiSelectQuestions.push({
+            ...q,
+            originalWeek: weekKey,
+            originalWeekTitle: questionBank[weekKey].title
+          });
+        }
+      });
+    });
+
+    // Shuffle questions
+    const shuffledQuestions = shuffleArray(allMultiSelectQuestions);
+
+    // For each question, shuffle options and map correct answer
+    const processedQuestions = shuffledQuestions.map(q => {
+      const originalOptions = [...q.options];
+      const originalCorrectAnswer = q.correctAnswer;
+      
+      // Create array of indices [0, 1, 2, ...]
+      const indices = originalOptions.map((_, i) => i);
+      const shuffledIndices = shuffleArray(indices);
+      
+      // Create mapping: original index -> new position
+      const indexMap = {};
+      shuffledIndices.forEach((originalIdx, newPosition) => {
+        indexMap[originalIdx] = newPosition;
+      });
+      
+      // Shuffle options using the shuffled indices
+      const shuffledOptions = shuffledIndices.map(originalIdx => originalOptions[originalIdx]);
+      
+      // Map correct answer to new positions (always array for multi-select)
+      const newCorrectAnswer = originalCorrectAnswer.map(originalIdx => indexMap[originalIdx]);
+      
+      return {
+        ...q,
+        options: shuffledOptions,
+        correctAnswer: newCorrectAnswer,
+        indexMap: indexMap
+      };
+    });
+
+    setMultiSelectQuestions(processedQuestions);
+    setIsMultiSelectMode(true);
+    setSelectedAnswers({});
+    setCheckedQuestions(new Set());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleExitMultiSelectMode = () => {
+    setIsMultiSelectMode(false);
+    setMultiSelectQuestions([]);
+    setSelectedAnswers({});
+    setCheckedQuestions(new Set());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Get questions to display
-  const questionsToDisplay = isGrandTest ? grandTestQuestions : currentWeek.questions;
-  const displayTotalQuestions = isGrandTest ? grandTestQuestions.length : totalQuestions;
+  const questionsToDisplay = isGrandTest 
+    ? grandTestQuestions 
+    : isMultiSelectMode 
+    ? multiSelectQuestions 
+    : currentWeek.questions;
+  const displayTotalQuestions = isGrandTest 
+    ? grandTestQuestions.length 
+    : isMultiSelectMode 
+    ? multiSelectQuestions.length 
+    : totalQuestions;
 
   const answeredCount = Object.keys(selectedAnswers).filter(id => {
     const answer = selectedAnswers[id];
@@ -197,16 +271,25 @@ export default function QuizMode() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Grand Test Button */}
-        {!isGrandTest && (
-          <div className="mb-6 sm:mb-8">
-            <Button
-              onClick={handleStartGrandTest}
-              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium gap-2 shadow-lg hover:shadow-xl transition-all"
-            >
-              <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
-              Start Grand Test (All Questions Shuffled)
-            </Button>
+        {/* Grand Test and Multi-Select Buttons */}
+        {!isGrandTest && !isMultiSelectMode && (
+          <div className="mb-6 sm:mb-8 space-y-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={handleStartGrandTest}
+                className="flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium gap-2 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
+                Start Grand Test (All Questions Shuffled)
+              </Button>
+              <Button
+                onClick={handleStartMultiSelectMode}
+                className="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium gap-2 shadow-lg hover:shadow-xl transition-all"
+              >
+                <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                Multi-Select Questions Only
+              </Button>
+            </div>
           </div>
         )}
 
@@ -255,6 +338,31 @@ export default function QuizMode() {
           </div>
         )}
 
+        {/* Multi-Select Mode Header */}
+        {isMultiSelectMode && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-blue-900 mb-2">
+                    Multi-Select Questions Mode
+                  </h2>
+                  <p className="text-sm sm:text-base text-blue-700">
+                    All {multiSelectQuestions.length} multi-select questions from all weeks, shuffled with randomized options
+                  </p>
+                </div>
+                <Button
+                  onClick={handleExitMultiSelectMode}
+                  variant="outline"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  Exit Multi-Select Mode
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Progress */}
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2 gap-2">
@@ -262,7 +370,7 @@ export default function QuizMode() {
                   {answeredCount} of {displayTotalQuestions} answered
                 </span>
                 <span className="text-xs sm:text-sm text-slate-500 truncate">
-                  {isGrandTest ? 'Grand Test' : currentWeek.title}
+                  {isGrandTest ? 'Grand Test' : isMultiSelectMode ? 'Multi-Select Questions' : currentWeek.title}
                 </span>
               </div>
               <Progress value={displayTotalQuestions > 0 ? answeredCount / displayTotalQuestions * 100 : 0} className="h-2" />
@@ -308,8 +416,12 @@ export default function QuizMode() {
                               <Badge variant="outline" className="text-xs sm:text-sm">
                                 Question {index + 1}
                               </Badge>
-                              {isGrandTest && q.originalWeekTitle && (
-                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300 text-xs sm:text-sm">
+                              {(isGrandTest || isMultiSelectMode) && q.originalWeekTitle && (
+                                <Badge variant="outline" className={`text-xs sm:text-sm ${
+                                  isGrandTest 
+                                    ? 'bg-purple-50 text-purple-700 border-purple-300' 
+                                    : 'bg-blue-50 text-blue-700 border-blue-300'
+                                }`}>
                                   {q.originalWeekTitle}
                                 </Badge>
                               )}
@@ -476,7 +588,7 @@ export default function QuizMode() {
             </div>
 
             {/* Retake Button */}
-            {!isGrandTest && (
+            {!isGrandTest && !isMultiSelectMode && (
               <div className="mt-6 sm:mt-8 flex justify-center pb-6 sm:pb-8 px-4">
                 <Button
                   onClick={handleRetake}
@@ -499,6 +611,20 @@ export default function QuizMode() {
                   className="gap-2 bg-white hover:bg-slate-50 border-slate-300 w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base">
                   <Shuffle className="w-4 h-4" />
                   Retake Grand Test (Reshuffle)
+                </Button>
+              </div>
+            )}
+
+            {/* Multi-Select Mode Retake Button */}
+            {isMultiSelectMode && (
+              <div className="mt-6 sm:mt-8 flex justify-center pb-6 sm:pb-8 px-4">
+                <Button
+                  onClick={handleStartMultiSelectMode}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 bg-white hover:bg-slate-50 border-slate-300 w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base">
+                  <CheckSquare className="w-4 h-4" />
+                  Retake Multi-Select Test (Reshuffle)
                 </Button>
               </div>
             )}
