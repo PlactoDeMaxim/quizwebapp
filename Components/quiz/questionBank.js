@@ -181,8 +181,8 @@ export const questionBank = {
         id: "w2q8",
         question: "Assuming a bi-gram language model, calculate the perplexity of the sentence: <s> birds fly in the blue sky </s> Please do not consider <s> and </s> as words of the sentence.",
         options: ["271/4", "271/5", "91/6", "None of these"],
-        correctAnswer: [1, 3],
-        explanation: "As calculated in the previous question, P(<s> birds fly in the blue sky </s>) = 0. Thus, Perplexity = undefined. Both option 2 (271/5) and option 4 (None of these) are correct interpretations.",
+        correctAnswer: 3,
+        explanation: "As calculated in the previous question, P(<s> birds fly in the blue sky </s>) = 0. Thus, Perplexity = undefined",
         cheat: "❌ UNDEFINED = Can't calculate perplexity when probability is 0!"
       }
     ]

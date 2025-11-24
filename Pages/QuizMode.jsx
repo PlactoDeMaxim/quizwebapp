@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { questionBank } from '../Components/quiz/questionBank';
-import { ChevronLeft, CheckCircle2, XCircle, RotateCcw, Brain, Lightbulb, Search } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, XCircle, RotateCcw, Brain, Lightbulb, Search, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +10,22 @@ import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParrotLogo from '@/components/ParrotLogo';
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export default function QuizMode() {
   const [selectedWeek, setSelectedWeek] = useState('week1');
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [checkedQuestions, setCheckedQuestions] = useState(new Set());
+  const [isGrandTest, setIsGrandTest] = useState(false);
+  const [grandTestQuestions, setGrandTestQuestions] = useState([]);
 
   const weeks = Object.keys(questionBank);
   const currentWeek = questionBank[selectedWeek];
@@ -42,26 +54,103 @@ export default function QuizMode() {
   };
 
   const handleRetake = () => {
-    // Reset only the current week's answers
-    const newAnswers = { ...selectedAnswers };
-    const newChecked = new Set(checkedQuestions);
-    
-    // Remove answers and checked status for current week's questions
-    currentWeek.questions.forEach(q => {
-      delete newAnswers[q.id];
-      newChecked.delete(q.id);
-    });
-    
-    setSelectedAnswers(newAnswers);
-    setCheckedQuestions(newChecked);
+    if (isGrandTest) {
+      // Reset grand test answers
+      setSelectedAnswers({});
+      setCheckedQuestions(new Set());
+    } else {
+      // Reset only the current week's answers
+      const newAnswers = { ...selectedAnswers };
+      const newChecked = new Set(checkedQuestions);
+      
+      // Remove answers and checked status for current week's questions
+      currentWeek.questions.forEach(q => {
+        delete newAnswers[q.id];
+        newChecked.delete(q.id);
+      });
+      
+      setSelectedAnswers(newAnswers);
+      setCheckedQuestions(newChecked);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleWeekChange = (week) => {
     setSelectedWeek(week);
+    setIsGrandTest(false);
     setSelectedAnswers({});
     setCheckedQuestions(new Set());
+    setGrandTestQuestions([]);
   };
+
+  const handleStartGrandTest = () => {
+    // Collect all questions from all weeks
+    const allQuestions = [];
+    Object.keys(questionBank).forEach(weekKey => {
+      questionBank[weekKey].questions.forEach(q => {
+        allQuestions.push({
+          ...q,
+          originalWeek: weekKey,
+          originalWeekTitle: questionBank[weekKey].title
+        });
+      });
+    });
+
+    // Shuffle questions
+    const shuffledQuestions = shuffleArray(allQuestions);
+
+    // For each question, shuffle options and map correct answer
+    const processedQuestions = shuffledQuestions.map(q => {
+      const originalOptions = [...q.options];
+      const originalCorrectAnswer = q.correctAnswer;
+      
+      // Create array of indices [0, 1, 2, ...]
+      const indices = originalOptions.map((_, i) => i);
+      const shuffledIndices = shuffleArray(indices);
+      
+      // Map old index to new index
+      const indexMap = {};
+      shuffledIndices.forEach((newIdx, oldIdx) => {
+        indexMap[oldIdx] = newIdx;
+      });
+      
+      // Shuffle options
+      const shuffledOptions = shuffledIndices.map(oldIdx => originalOptions[oldIdx]);
+      
+      // Map correct answer to new positions
+      let newCorrectAnswer;
+      if (Array.isArray(originalCorrectAnswer)) {
+        newCorrectAnswer = originalCorrectAnswer.map(oldIdx => indexMap[oldIdx]);
+      } else {
+        newCorrectAnswer = indexMap[originalCorrectAnswer];
+      }
+      
+      return {
+        ...q,
+        options: shuffledOptions,
+        correctAnswer: newCorrectAnswer,
+        indexMap: indexMap // Keep for reference if needed
+      };
+    });
+
+    setGrandTestQuestions(processedQuestions);
+    setIsGrandTest(true);
+    setSelectedAnswers({});
+    setCheckedQuestions(new Set());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleExitGrandTest = () => {
+    setIsGrandTest(false);
+    setGrandTestQuestions([]);
+    setSelectedAnswers({});
+    setCheckedQuestions(new Set());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Get questions to display
+  const questionsToDisplay = isGrandTest ? grandTestQuestions : currentWeek.questions;
+  const displayTotalQuestions = isGrandTest ? grandTestQuestions.length : totalQuestions;
 
   const answeredCount = Object.keys(selectedAnswers).filter(id => {
     const answer = selectedAnswers[id];
@@ -98,7 +187,7 @@ export default function QuizMode() {
                 </Button>
               </Link>
               <Badge variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm">
-                {answeredCount}/{totalQuestions}
+                {answeredCount}/{displayTotalQuestions}
               </Badge>
             </div>
           </div>
@@ -106,40 +195,80 @@ export default function QuizMode() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Week Selector */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {weeks.map((week, index) =>
-            <button
-              key={week}
-              onClick={() => handleWeekChange(week)}
-              className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm ${
-              selectedWeek === week ?
-              'bg-slate-700 text-white shadow-md' :
-              'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}`
-              }>
-                Week {index + 1}
-              </button>
-            )}
+        {/* Grand Test Button */}
+        {!isGrandTest && (
+          <div className="mb-6 sm:mb-8">
+            <Button
+              onClick={handleStartGrandTest}
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium gap-2 shadow-lg hover:shadow-xl transition-all"
+            >
+              <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
+              Start Grand Test (All Questions Shuffled)
+            </Button>
           </div>
-        </div>
+        )}
+
+        {/* Week Selector - Hidden in Grand Test */}
+        {!isGrandTest && (
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {weeks.map((week, index) =>
+              <button
+                key={week}
+                onClick={() => handleWeekChange(week)}
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm ${
+                selectedWeek === week ?
+                'bg-slate-700 text-white shadow-md' :
+                'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'}`
+                }>
+                  Week {index + 1}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Grand Test Header */}
+        {isGrandTest && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-purple-900 mb-2">
+                    Grand Test Mode
+                  </h2>
+                  <p className="text-sm sm:text-base text-purple-700">
+                    All {grandTestQuestions.length} questions from all weeks, shuffled with randomized options
+                  </p>
+                </div>
+                <Button
+                  onClick={handleExitGrandTest}
+                  variant="outline"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                  Exit Grand Test
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Progress */}
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2 gap-2">
                 <span className="text-xs sm:text-sm font-medium text-slate-600">
-                  {answeredCount} of {totalQuestions} answered
+                  {answeredCount} of {displayTotalQuestions} answered
                 </span>
                 <span className="text-xs sm:text-sm text-slate-500 truncate">
-                  {currentWeek.title}
+                  {isGrandTest ? 'Grand Test' : currentWeek.title}
                 </span>
               </div>
-              <Progress value={answeredCount / totalQuestions * 100} className="h-2" />
+              <Progress value={displayTotalQuestions > 0 ? answeredCount / displayTotalQuestions * 100 : 0} className="h-2" />
             </div>
 
             {/* All Questions - Scrollable */}
             <div className="space-y-6">
-              {currentWeek.questions.map((q, index) => {
+              {questionsToDisplay.map((q, index) => {
               const userAnswer = selectedAnswers[q.id];
               const isMultiple = Array.isArray(q.correctAnswer);
               const isChecked = checkedQuestions.has(q.id);
@@ -177,6 +306,11 @@ export default function QuizMode() {
                               <Badge variant="outline" className="text-xs sm:text-sm">
                                 Question {index + 1}
                               </Badge>
+                              {isGrandTest && q.originalWeekTitle && (
+                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300 text-xs sm:text-sm">
+                                  {q.originalWeekTitle}
+                                </Badge>
+                              )}
                               {Array.isArray(q.correctAnswer) && (
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-xs sm:text-sm">
                                   More than one
@@ -340,16 +474,32 @@ export default function QuizMode() {
             </div>
 
             {/* Retake Button */}
-            <div className="mt-6 sm:mt-8 flex justify-center pb-6 sm:pb-8 px-4">
-              <Button
-                onClick={handleRetake}
-                variant="outline"
-                size="lg"
-                className="gap-2 bg-white hover:bg-slate-50 border-slate-300 w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base">
-                <RotateCcw className="w-4 h-4" />
-                Retake Quiz
-              </Button>
-            </div>
+            {!isGrandTest && (
+              <div className="mt-6 sm:mt-8 flex justify-center pb-6 sm:pb-8 px-4">
+                <Button
+                  onClick={handleRetake}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 bg-white hover:bg-slate-50 border-slate-300 w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base">
+                  <RotateCcw className="w-4 h-4" />
+                  Retake Quiz
+                </Button>
+              </div>
+            )}
+
+            {/* Grand Test Retake Button */}
+            {isGrandTest && (
+              <div className="mt-6 sm:mt-8 flex justify-center pb-6 sm:pb-8 px-4">
+                <Button
+                  onClick={handleStartGrandTest}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 bg-white hover:bg-slate-50 border-slate-300 w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base">
+                  <Shuffle className="w-4 h-4" />
+                  Retake Grand Test (Reshuffle)
+                </Button>
+              </div>
+            )}
       </div>
     </div>);
 }
